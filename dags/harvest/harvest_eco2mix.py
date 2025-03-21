@@ -1,9 +1,7 @@
 from airflow import DAG
 from airflow.utils.dates import days_ago
-from airflow.operators.python import PythonOperator
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
 from eco2mix_operator import Eco2MixOperator
-import pandas as pd
 import os
 
 # Configuration du DAG
@@ -25,7 +23,7 @@ snowflake_conn_id = 'snowflake_conn'
 stage_name = 'eco2mix_stage'
 table_name = 'eco2mix_data'
 
-# Extraction des données
+# Extraction des données avec l'opérateur Eco2Mix
 extract_task = Eco2MixOperator(
     task_id='extract_eco2mix_data',
     output_path=output_path,
@@ -35,20 +33,16 @@ extract_task = Eco2MixOperator(
 )
 
 # Création de la table Snowflake si elle n'existe pas
-def create_table():
-    df = pd.read_csv(output_path, sep=';')
-    columns = ', '.join([f'{col} STRING' for col in df.columns])
-    create_query = f"""
-    CREATE TABLE IF NOT EXISTS {table_name} (
-        {columns}
-    );
-    """
-    return create_query
-
 create_table_task = SnowflakeOperator(
     task_id='create_table_if_not_exists',
     snowflake_conn_id=snowflake_conn_id,
-    sql=create_table(),
+    sql=f"""
+    CREATE TABLE IF NOT EXISTS {table_name} (
+        date STRING,
+        consommation STRING,
+        production STRING
+    );
+    """,
     dag=dag
 )
 

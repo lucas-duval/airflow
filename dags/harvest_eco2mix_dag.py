@@ -49,7 +49,7 @@ convert_task = PythonOperator(
 )
 
 # Création de la table Snowflake si elle n'existe pas
-create_table_task = SnowflakeOperator(
+create_table_task = SQLExecuteQueryOperator(
     task_id='create_table_if_not_exists',
     snowflake_conn_id=snowflake_conn_id,
     sql=f"""
@@ -63,7 +63,7 @@ create_table_task = SnowflakeOperator(
 )
 
 # Chargement du fichier CSV dans Snowflake (PUT)
-put_task = SnowflakeOperator(
+put_task = SQLExecuteQueryOperator(
     task_id='put_file_to_stage',
     snowflake_conn_id=snowflake_conn_id,
     sql=f"PUT file://{csv_output_path} @{stage_name}",
@@ -71,7 +71,7 @@ put_task = SnowflakeOperator(
 )
 
 # Copie des données du stage vers la table
-copy_task = SnowflakeOperator(
+copy_task = SQLExecuteQueryOperator(
     task_id='copy_into_table',
     snowflake_conn_id=snowflake_conn_id,
     sql=f"COPY INTO {table_name} FROM @{stage_name}/{os.path.basename(csv_output_path)} FILE_FORMAT = (TYPE = 'CSV' FIELD_OPTIONALLY_ENCLOSED_BY = '\"')",

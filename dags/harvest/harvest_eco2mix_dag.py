@@ -7,7 +7,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from airflow import DAG
 from airflow.utils.dates import days_ago
 from airflow.providers.snowflake.operators.snowflake import SQLExecuteQueryOperator
-from ..operators.Eco2mixOperator import Eco2mixOperator
+from operators.Eco2mixOperator import Eco2mixOperator
 import os
 
 # Configuration du DAG

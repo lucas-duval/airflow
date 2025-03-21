@@ -1,7 +1,7 @@
 from airflow import DAG
 from airflow.utils.dates import days_ago
 from airflow.operators.python import PythonOperator
-from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
+from airflow.providers.snowflake.operators.snowflake_sql import SnowflakeOperator
 from eco2mix_operator import Eco2MixOperator
 import pandas as pd
 import os

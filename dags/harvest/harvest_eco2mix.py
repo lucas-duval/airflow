@@ -1,9 +1,7 @@
 from airflow import DAG
 from airflow.utils.dates import days_ago
-from airflow.operators.python import PythonOperator
 from airflow.providers.snowflake.operators.snowflake import SnowflakeOperator
-from operators.eco2mix_operator import Eco2MixOperator
-import pandas as pd
+from eco2mix_operator import Eco2MixOperator
 import os
 
 # Configuration du DAG
@@ -20,35 +18,46 @@ dag = DAG(
 )
 
 # Variables de configuration
-output_path = '/tmp/eco2mix_data.csv'
+zip_output_path = '/tmp/eco2mix_data.zip'
+xls_output_path = '/tmp/eco2mix_data.xls'
+csv_output_path = '/tmp/eco2mix_data.csv'
 snowflake_conn_id = 'snowflake_conn'
 stage_name = 'eco2mix_stage'
 table_name = 'eco2mix_data'
 
-# Extraction des données
+# Extraction des données avec l'opérateur Eco2Mix
 extract_task = Eco2MixOperator(
     task_id='extract_eco2mix_data',
-    output_path=output_path,
+    output_path=zip_output_path,
     start_date='2023-01-01',
     end_date='2023-12-31',
     dag=dag
 )
 
-# Création de la table Snowflake si elle n'existe pas
-def create_table():
-    df = pd.read_csv(output_path, sep=';')
-    columns = ', '.join([f'{col} STRING' for col in df.columns])
-    create_query = f"""
-    CREATE TABLE IF NOT EXISTS {table_name} (
-        {columns}
-    );
-    """
-    return create_query
+# Conversion du fichier .xls extrait vers .csv
+def convert_xls_to_csv(xls_path, csv_path):
+    import pandas as pd
+    df = pd.read_excel(xls_path)
+    df.to_csv(csv_path, index=False)
 
+convert_task = PythonOperator(
+    task_id='convert_xls_to_csv',
+    python_callable=convert_xls_to_csv,
+    op_args=[xls_output_path, csv_output_path],
+    dag=dag
+)
+
+# Création de la table Snowflake si elle n'existe pas
 create_table_task = SnowflakeOperator(
     task_id='create_table_if_not_exists',
     snowflake_conn_id=snowflake_conn_id,
-    sql=create_table(),
+    sql=f"""
+    CREATE TABLE IF NOT EXISTS {table_name} (
+        date STRING,
+        consommation STRING,
+        production STRING
+    );
+    """,
     dag=dag
 )
 
@@ -56,7 +65,7 @@ create_table_task = SnowflakeOperator(
 put_task = SnowflakeOperator(
     task_id='put_file_to_stage',
     snowflake_conn_id=snowflake_conn_id,
-    sql=f"PUT file://{output_path} @{stage_name}",
+    sql=f"PUT file://{csv_output_path} @{stage_name}",
     dag=dag
 )
 
@@ -64,9 +73,9 @@ put_task = SnowflakeOperator(
 copy_task = SnowflakeOperator(
     task_id='copy_into_table',
     snowflake_conn_id=snowflake_conn_id,
-    sql=f"COPY INTO {table_name} FROM @{stage_name}/{os.path.basename(output_path)} FILE_FORMAT = (TYPE = 'CSV' FIELD_OPTIONALLY_ENCLOSED_BY = '\"')",
+    sql=f"COPY INTO {table_name} FROM @{stage_name}/{os.path.basename(csv_output_path)} FILE_FORMAT = (TYPE = 'CSV' FIELD_OPTIONALLY_ENCLOSED_BY = '\"')",
     dag=dag
 )
 
 # Dépendances des tâches
-extract_task >> create_table_task >> put_task >> copy_task
+extract_task >> convert_task >> create_table_task >> put_task >> copy_task

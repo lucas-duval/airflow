@@ -1,4 +1,4 @@
-from airflow.models import BaseOperator
+from airflow.models.baseoperator import BaseOperator
 from airflow.utils.decorators import apply_defaults
 import requests
 import os

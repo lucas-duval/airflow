@@ -1,7 +1,7 @@
 from airflow import DAG
 from airflow.utils.dates import days_ago
 from airflow.providers.snowflake.operators.snowflake import SQLExecuteQueryOperator
-from operators.eco2mix_operator import Eco2MixOperator
+from dags.operators.eco2mix_operator import Eco2MixOperator
 import os
 
 # Configuration du DAG

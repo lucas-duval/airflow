@@ -1,7 +1,7 @@
 from airflow import DAG
 from airflow.utils.dates import days_ago
 from airflow.providers.snowflake.operators.snowflake import SQLExecuteQueryOperator
-from operators.eco2mix_operator import Eco2mixOperator
+# from operators.eco2mix_operator import Eco2mixOperator
 import os
 
 print(sys.path)
@@ -28,13 +28,13 @@ stage_name = 'eco2mix_stage'
 table_name = 'eco2mix_data'
 
 # Extraction des données avec l'opérateur Eco2Mix
-extract_task = Eco2MixOperator(
-    task_id='extract_eco2mix_data',
-    output_path=zip_output_path,
-    start_date='2023-01-01',
-    end_date='2023-12-31',
-    dag=dag
-)
+#extract_task = Eco2MixOperator(
+#    task_id='extract_eco2mix_data',
+#    output_path=zip_output_path,
+#    start_date='2023-01-01',
+#    end_date='2023-12-31',
+#    dag=dag
+#)
 
 # Conversion du fichier .xls extrait vers .csv
 def convert_xls_to_csv(xls_path, csv_path):
@@ -79,5 +79,5 @@ copy_task = SnowflakeOperator(
     dag=dag
 )
 
-# Dépendances des tâches
-extract_task >> convert_task >> create_table_task >> put_task >> copy_task
+# extract_task Dépendances des tâches
+convert_task >> create_table_task >> put_task >> copy_task

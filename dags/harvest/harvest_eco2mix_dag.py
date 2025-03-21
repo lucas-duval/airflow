@@ -10,6 +10,8 @@ from airflow.providers.snowflake.operators.snowflake import SQLExecuteQueryOpera
 from operators.Eco2mixOperator import Eco2mixOperator
 import os
 
+print(sys.path)
+
 # Configuration du DAG
 default_args = {
     'owner': 'airflow',

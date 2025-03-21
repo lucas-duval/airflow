@@ -64,7 +64,7 @@ put_task = SnowflakeOperator(
 copy_task = SnowflakeOperator(
     task_id='copy_into_table',
     snowflake_conn_id=snowflake_conn_id,
-    sql=f"COPY INTO {table_name} FROM @{stage_name}/{os.path.basename(output_path)} FILE_FORMAT = (TYPE = 'CSV' FIELD_OPTIONALLY_ENCLOSED_BY = '"')",
+    sql=f"COPY INTO {table_name} FROM @{stage_name}/{os.path.basename(output_path)} FILE_FORMAT = (TYPE = 'CSV' FIELD_OPTIONALLY_ENCLOSED_BY = '\"')",
     dag=dag
 )
 

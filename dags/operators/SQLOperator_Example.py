@@ -28,7 +28,7 @@ with DAG(
     execute_query_task = SQLExecuteQueryOperator(
         task_id='execute_snowflake_query',
         sql=snowflake_query,
-        conn_id='SnowflakeConnection',  # The connection id to Snowflake (change here)
+        conn_id='snowflake_conn',  # The connection id to Snowflake (change here)
     )
 
     execute_query_task

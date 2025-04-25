@@ -6,6 +6,7 @@ with DAG("create_snowflake_table_dag", start_date=datetime(2024, 1, 1), schedule
     
     create_table = PythonOperator(
         task_id="create_table_from_csv",
+        python_callable=create_table_from_csv,
         op_kwargs={
             "csv_file": "/opt/airflow/data/enedis_bilan_electrique.csv",
             "table_name": "ENEDIS_RAW_DATA",

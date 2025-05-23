@@ -45,10 +45,5 @@ to_csv_task = ExcelToCSV(
     dag=dag
 )
 
-extract_enedis_task = EnedisExtractorOperator(
-    task_id="extract_enedis_data",
-    output_path='/home/sysadmin/airflow/data/enedis_bilan_electrique.csv',
-    dag=dag
-)
 
-extract_task >> unzip_task >> to_csv_task >> extract_enedis_task
+extract_task >> unzip_task >> to_csv_task

@@ -42,8 +42,8 @@ to_csv_task = ConvertXlsToCsvOperator(
     task_id="convert_to_csv",
     start = '2025-04-19',
     end = '2025-04-19',
-    xls_dir = '/opt/airflow/data/eco2mix_datas/eCO2mix_RTE_2025-03-20.xls',
-    csv_dir = '/opt/airflow/data/eco2mix_data.csv',
+    xls_dir = '/opt/airflow/data',
+    csv_dir = '/opt/airflow/data',
     dag=dag
 )
 

@@ -36,6 +36,8 @@ def create_table_from_csv(csv_file, table_name, database_name, schema_name, conn
     hook = SnowflakeHook(snowflake_conn_id=conn_id)
     conn = hook.get_conn()
     cursor = conn.cursor()
+    hook.run(f"USE DATABASE {database_name}")
+    hook.run(f"USE SCHEMA {schema_name}")
 
     try:
         cursor.execute(create_table_sql)

@@ -1,29 +1,54 @@
-
-from airflow.models.baseoperator import BaseOperator
 import pandas as pd
+import os
+from airflow.models import BaseOperator
+from datetime import datetime, timedelta
 
-
-class ExcelToCSV(BaseOperator):
-    def __init__(self, input_path: str, output_path: str, **kwargs):
-        super().__init__(**kwargs)
-        self.input_path = input_path
-        self.output_path = output_path
+class ConvertXlsToCsvOperator(BaseOperator):
+    def __init__(self, start: str, end: str, xls_dir: str, csv_dir: str, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.start = start
+        self.end = end
+        self.xls_dir = xls_dir
+        self.csv_dir = csv_dir
 
     def execute(self, context):
-        print(f'Reading CSV file with tab separator: {self.input_path}')
+        """
+        Convertit les fichiers .xls en .csv pour une plage de dates donnée.
+        """
+        # Créer la plage de dates
+        start = datetime.strptime(self.start, "%Y-%m-%d")
+        end = datetime.strptime(self.end, "%Y-%m-%d")
+        date_range = [(start + timedelta(days=i)).strftime("%Y-%m-%d") for i in range((end - start).days + 1)]
 
-        # Lire le fichier CSV avec gestion d'encodage
-        try:
-            df = pd.read_csv(self.input_path, sep='\t', encoding='utf-8', engine='python')
-        except UnicodeDecodeError:
-            print("UTF-8 decoding failed. Trying Latin-1 encoding.")
-            df = pd.read_csv(self.input_path, sep='\t', encoding='latin1', engine='python')
+        # Convertir les fichiers .xls en .csv pour chaque date
+        for date_str in date_range:
+            xls_path = os.path.join(self.xls_dir, f"eCO2mix_RTE_{date_str}.xls")
+            os.makedirs(self.csv_dir, exist_ok=True)
+            csv_path = os.path.join(self.csv_dir, f"eCO2mix_RTE_{date_str}.csv")
 
-        print(df.head())  # Afficher un aperçu du fichier chargé
+            print(f'Reading XLS file for date {date_str}: {xls_path}')
 
-        # Sauvegarder le fichier avec des virgules comme séparateur
-        print(f'Writing transformed CSV file: {self.output_path}')
-        df.to_csv(self.output_path, index=False, sep=',', encoding='utf-8')
+            # Essayer de lire le fichier avec différents encodages
+            try:
+                # Tentative de lecture en UTF-8
+                df = pd.read_csv(xls_path, encoding='utf-8-sig', delimiter='\t', engine='python')
+            except UnicodeDecodeError:
+                print(f"UTF-8 decoding failed for {xls_path}. Trying Latin-1 encoding.")
+                # Si l'UTF-8 échoue, essayer avec l'encodage Latin-1
+                try:
+                    df = pd.read_csv(xls_path, encoding='latin1', delimiter='\t', engine='python')
+                except Exception as e:
+                    print(f"❌ Erreur lors de la lecture du fichier {xls_path}: {e}")
+                    continue  # Passer à la date suivante si une erreur survient
+            except Exception as e:
+                print(f"❌ Erreur lors de la lecture du fichier {xls_path}: {e}")
+                continue  # Passer à la date suivante si une erreur survient
 
-        return self.output_path
+            print(f"✅ Fichier chargé pour {date_str}. Sauvegarde en CSV...")
 
+            # Sauvegarder le fichier avec des virgules comme séparateur
+            try:
+                df.to_csv(csv_path, index=False, sep=',', encoding='utf-8-sig')
+                print(f"✅ Fichier converti et sauvegardé : {csv_path}")
+            except Exception as e:
+                print(f"❌ Erreur lors de la sauvegarde du fichier CSV {csv_path}: {e}")

@@ -3,7 +3,7 @@ from airflow import DAG
 from airflow.utils.dates import days_ago
 from datetime import datetime,timedelta
 from operators.eco2mix_extract_operator import Eco2MixExtractorOperator
-from operators.excel_to_csv_operator import ExcelToCSV
+from operators.excel_to_csv_operator import ConvertXlsToCsvOperator
 from operators.unzip_operator import UnzipOperator
 from operators.enedis_extract import EnedisExtractorOperator
 
@@ -26,7 +26,7 @@ dag = DAG(
 # Exécuter l'opérateur personnalisé pour une date spécifique
 extract_task = Eco2MixExtractorOperator(
     task_id="extract_eco2mix_data",
-    date="20/03/2025",  # Date spécifique à traiter
+    date="20/04/2025",  # Date spécifique à traiter
     output_path='/opt/airflow/data/eco2mix_data.zip',  # Chemin de sortie du zip'
     dag=dag
 )
@@ -38,10 +38,12 @@ unzip_task = UnzipOperator(
     dag=dag
 )
 
-to_csv_task = ExcelToCSV(
+to_csv_task = ConvertXlsToCsvOperator(
     task_id="convert_to_csv",
-    input_path='/opt/airflow/data/eco2mix_datas/eCO2mix_RTE_2025-03-20.xls',
-    output_path='/opt/airflow/data/eco2mix_data.csv',
+    start = '2025-04-19',
+    end = '2025-04-19',
+    xls_dir = '/opt/airflow/data/eco2mix_datas/eCO2mix_RTE_2025-03-20.xls',
+    csv_dir = '/opt/airflow/data/eco2mix_data.csv',
     dag=dag
 )
 

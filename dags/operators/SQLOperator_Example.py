@@ -57,9 +57,9 @@ with DAG(
         python_callable=create_table_from_csv,
         op_kwargs={
             "csv_file": "/opt/airflow/data/eco2mix_data.csv",
-            "table_name": "ENEDIS_RAW_DATA",
+            "table_name": "RTE_RAW_DATA",
             "database_name": "BRONZE",
-            "schema_name": "ENEDIS",
+            "schema_name": "RTE",
             "conn_id": "SnowflakeConnection"
         }
     )

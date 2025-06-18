@@ -26,7 +26,7 @@ dag = DAG(
 # Exécuter l'opérateur personnalisé pour une date spécifique
 extract_task = Eco2MixExtractorOperator(
     task_id="extract_eco2mix_data",
-    date="20/04/2025",  # Date spécifique à traiter
+    date="19/04/2025",  # Date spécifique à traiter
     output_path='/opt/airflow/data/eco2mix_data.zip',  # Chemin de sortie du zip'
     dag=dag
 )

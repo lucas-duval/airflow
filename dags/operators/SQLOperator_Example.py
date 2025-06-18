@@ -56,7 +56,7 @@ with DAG(
         task_id="create_table_from_csv",
         python_callable=create_table_from_csv,
         op_kwargs={
-            "csv_file": "/home/sysadmin/airflow/data/enedis_bilan_electrique.csv",
+            "csv_file": "/opt/airflow/data/eco2mix_data.csv",
             "table_name": "ENEDIS_RAW_DATA",
             "database_name": "BRONZE",
             "schema_name": "ENEDIS",

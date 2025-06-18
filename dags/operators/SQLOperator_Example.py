@@ -26,7 +26,7 @@ def create_table_from_csv(csv_file, table_name, database_name, schema_name, conn
         sf_type = pandas_to_snowflake_type(df[col].dtype)
         columns.append(f'"{col}" {sf_type}')
 
-    columns_sql = ",".join(columns)
+    columns_sql = ",\n  ".join(columns)
     create_table_sql = f"""
     CREATE TABLE IF NOT EXISTS {database_name}.{schema_name}.{table_name} (
       {columns_sql}

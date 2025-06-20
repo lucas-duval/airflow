@@ -7,7 +7,7 @@ from datetime import datetime
 import os
 
 # === FONCTION définie en haut ===
-def create_table_from_csv(csv_file, table_name, database_name, schema_name, stage_name, auto_compress, overwrite, conn_id):
+def create_table_from_csv(csv_file, table_name, database_name, schema_name, stage_name, auto_compress, overwrite, conn_id, file_name_in_stage, on_error):
     df = pd.read_csv(csv_file)
 
     def pandas_to_snowflake_type(dtype):
@@ -64,6 +64,25 @@ def create_table_from_csv(csv_file, table_name, database_name, schema_name, stag
     print(f"Exécution de la commande PUT : {put_cmd}")
     hook.run(put_cmd)
     print("Upload vers le stage terminé.")
+    
+    
+    def format_value(v):
+        # Si c'est un int, on ne met pas de quotes, sinon on entoure de quotes
+        if isinstance(v, int):
+            return str(v)
+        else:
+            return f"'{v}'"
+
+
+    copy_sql = f"""
+    COPY INTO {database_name}.{schema_name}.{table_name}
+    FROM @{database_name}.{schema_name}.{stage_name}/{file_name_in_stage}
+    ON_ERROR = '{on_error}';
+    """
+
+    print(f"Exécution de la commande COPY INTO : {copy_sql}")
+    hook.run(copy_sql)
+    print("COPY INTO terminé.")
 
 # === DAG défini ensuite ===
 with DAG(
@@ -84,6 +103,8 @@ with DAG(
             "stage_name": "RTE_STAGE",
             "auto_compress": "TRUE",
             "overwrite": "TRUE",
-            "conn_id": "SnowflakeConnection"
+            "conn_id": "SnowflakeConnection",
+            "file_name_in_stage": "FILE_NAME_IN_STAGE",
+            "on_error": "ON_ERROR"
         }
     )

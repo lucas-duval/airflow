@@ -76,8 +76,7 @@ def create_table_from_csv(csv_file, table_name, database_name, schema_name, stag
 
     copy_sql = f"""
     COPY INTO {database_name}.{schema_name}.{table_name}
-    FROM @{database_name}.{schema_name}.{stage_name}/{file_name_in_stage}
-    ON_ERROR = '{on_error}';
+    FROM @{database_name}.{schema_name}.{stage_name}/{file_name_in_stage};
     """
 
     print(f"Exécution de la commande COPY INTO : {copy_sql}")

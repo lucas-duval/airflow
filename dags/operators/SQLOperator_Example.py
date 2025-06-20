@@ -7,7 +7,7 @@ from datetime import datetime
 import os
 
 # === FONCTION définie en haut ===
-def create_table_from_csv(csv_file, table_name, database_name, schema_name, stage_name, auto_compress, overwrite, conn_id, file_name_in_stage, on_error):
+def create_table_from_csv(csv_file, table_name, database_name, schema_name, stage_name, warehouse_name, auto_compress, overwrite, conn_id, file_name_in_stage, on_error):
     df = pd.read_csv(csv_file)
 
     def pandas_to_snowflake_type(dtype):
@@ -39,6 +39,7 @@ def create_table_from_csv(csv_file, table_name, database_name, schema_name, stag
     cursor = conn.cursor()
     hook.run(f"USE DATABASE {database_name}")
     hook.run(f"USE SCHEMA {schema_name}")
+    hook.run(f"USE WAREHOUSE {warehouse_name}")
 
     try:
         cursor.execute(create_table_sql)
@@ -50,10 +51,7 @@ def create_table_from_csv(csv_file, table_name, database_name, schema_name, stag
     if not os.path.exists(csv_file):
         raise FileNotFoundError(f"Fichier introuvable : {csv_file}")
 
-    hook = SnowflakeHook(snowflake_conn_id=conn_id)
-
-    hook.run(f"USE DATABASE {database_name}")
-    hook.run(f"USE SCHEMA {schema_name}")
+    
 
     put_cmd = (
         f"PUT file://{csv_file} @{database_name}.{schema_name}.{stage_name} "
@@ -100,6 +98,7 @@ with DAG(
             "database_name": "BRONZE",
             "schema_name": "RTE",
             "stage_name": "RTE_STAGE",
+            "warehouse_name": "INGEST_WH",
             "auto_compress": "TRUE",
             "overwrite": "TRUE",
             "conn_id": "SnowflakeConnection",
